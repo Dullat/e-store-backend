@@ -1,0 +1,17 @@
+{
+  "name": "e-store-backend",
+  "version": "1.0.0",
+  "description": "e-store backend api",
+  "license": "ISC",
+  "author": "dullat",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1"
+  }
+}
