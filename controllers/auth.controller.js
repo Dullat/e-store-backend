@@ -1,8 +1,10 @@
-import { BadRequest } from "../errors/errors.error.js";
+import { BadRequest, Unauthorized } from "../errors/errors.error.js";
 import hashPassword from "../utils/hashPassword.js";
 import comparePassword from "../utils/comparePassword.js";
 import pool from "../config/db.js";
 import { genAccessToken, genRefreshToken } from "../utils/genTokens.js";
+import jwt from "jsonwebtoken";
+import "dotenv/config";
 
 const registerUser = async (req, res, next) => {
   try {
@@ -60,13 +62,13 @@ const loginUser = async (req, res, next) => {
 
     if (!isMatch) throw new BadRequest("Invalid credentials");
 
-    const refreshToken = genAccessToken({
+    const accessToken = genAccessToken({
       user_name: user.rows[0].user_name,
       email: user.rows[0].email,
       id: user.rows[0].id,
     });
 
-    const accessToken = genRefreshToken({
+    const refreshToken = genRefreshToken({
       user_name: user.rows[0].user_name,
       email: user.rows[0].email,
       id: user.rows[0].id,
@@ -124,4 +126,53 @@ const getUser = async (req, res, next) => {
   }
 };
 
-export { registerUser, loginUser, getUser };
+const refreshToken = (req, res, next) => {
+  try {
+    const oldRefreshToken = req.cookies.refreshToken;
+    if (!oldRefreshToken) throw new Unauthorized("NO refreshToken provided");
+    try {
+      const decoded = jwt.verify(
+        oldRefreshToken,
+        process.env.JWT_REFRESH_SECRET,
+      );
+
+      const accessToken = genAccessToken({
+        user_name: decoded.user_name,
+        email: decoded.email,
+        id: decoded.id,
+      });
+
+      const refreshToken = genRefreshToken({
+        user_name: decoded.user_name,
+        email: decoded.email,
+        id: decoded.id,
+      });
+
+      res.cookie("accessToken", accessToken, {
+        sameSite: "none",
+        secure: true,
+        httpOnly: true,
+        maxAge: 1000 * 60 * 5,
+      });
+
+      res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        maxAge: 1000 * 60 * 60 * 24 * 7,
+        path: "/api/auth",
+      });
+
+      res.status(201).json({
+        success: true,
+        message: "tokens generated",
+      });
+    } catch (err) {
+      throw new Error(err);
+    }
+  } catch (err) {
+    next(err);
+  }
+};
+
+export { registerUser, loginUser, getUser, refreshToken };
