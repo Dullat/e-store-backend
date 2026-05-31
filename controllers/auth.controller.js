@@ -28,7 +28,7 @@ const registerUser = async (req, res, next) => {
       `
         INSERT INTO users (email, user_name, password)
         VALUES ($1, $2, $3)
-        RETURNING id, email, user_name
+        RETURNING *
       `,
       [email, user_name, hashedPassword],
     );
@@ -106,7 +106,7 @@ const getUser = async (req, res, next) => {
 
     const user = await pool.query(
       `
-        SELECT id, email, user_name
+        SELECT *
         FROM users
         WHERE id = $1
       `,
@@ -117,9 +117,11 @@ const getUser = async (req, res, next) => {
       throw new BadRequest("User not found");
     }
 
+    const { password: _, ...safeUser } = user.rows[0];
+
     res.status(200).json({
       success: true,
-      user: user.rows[0],
+      user: safeUser,
     });
   } catch (err) {
     next(err);
