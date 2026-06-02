@@ -12,6 +12,6 @@ router
   .route("/user/update-avatar")
   .patch(protect, upload.single("image"), updateAvatar);
 router.route("/user/update-username").patch(protect, updateUsername);
-router.route("/user/logout").get(logout);
+router.route("/user/logout").post(logout);
 
 export default router;
