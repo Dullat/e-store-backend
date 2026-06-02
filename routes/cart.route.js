@@ -9,7 +9,7 @@ import {
 const router = express.Router();
 
 router.route("/add-to-cart").post(protect, addToCart);
-router.route("/remove-from-cart").post(protect, removeFromCart);
+router.route("/remove-from-cart/:id").delete(protect, removeFromCart);
 router.route("/get-cart").get(protect, getCart);
 
 export default router;

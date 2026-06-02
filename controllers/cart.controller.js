@@ -35,7 +35,7 @@ export const addToCart = async (req, res, next) => {
 
 export const removeFromCart = async (req, res, next) => {
   try {
-    const { game_id } = req.body;
+    const { id: game_id } = req.params;
 
     if (!game_id) throw new BadRequest("Missing game id");
 
